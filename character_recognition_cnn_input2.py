@@ -5,6 +5,7 @@ import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
+from PIL import Image
 
 # Define a simple CNN model
 class Net(nn.Module):
@@ -92,7 +93,33 @@ def test(model, device, test_loader):
         ax.set_title(f'Prediction: {test_predictions[i][0]}')
         ax.axis('off')
     plt.tight_layout()
-    plt.show()
+    #plt.show()
+
+# Function to load and preprocess the custom image
+def preprocess_image(image_path):
+    image = Image.open(image_path).convert('L')  # Convert to grayscale
+    image = image.resize((28, 28))  # Resize to 28x28
+    image = np.array(image)
+    image = (image - 0.1307) / 0.3081  # Normalize
+    image = np.expand_dims(image, axis=0)  # Add channel dimension
+    image = np.expand_dims(image, axis=0)  # Add batch dimension
+    image = torch.tensor(image, dtype=torch.float32)  # Convert to tensor
+    return image
+
+#def preprocess_image(image_path):
+#    image = Image.open(image_path).convert('L')  # Convert to grayscale
+#    image = image.resize((28, 28))  # Resize to 28x28
+#    image = torchvision.transforms.functional.to_tensor(image)
+#    return image
+
+# Function to make a prediction on a custom image
+def predict_custom_image(model, device, image_path):
+    model.eval()
+    image = preprocess_image(image_path).to(device)
+    with torch.no_grad():
+        output = model(image)
+        pred = output.argmax(dim=1, keepdim=True)
+        return pred.item()
 
 # Train and test the model
 
@@ -101,6 +128,21 @@ device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
 print(f'Using device: {device}')
 model.to(device)
 
-for epoch in range(1, 11):
+for epoch in range(1, 20):
     train(model, device, train_loader, optimizer, epoch)
     test(model, device, test_loader)
+
+# Plotting some of the test images with their predictions
+fig, axes = plt.subplots(3, 3, figsize=(9, 9))
+axes = axes.flatten()
+for i, ax in enumerate(axes):
+    custom_image_path = './test_'+format(i+1)+'.png'  # Replace with your image path
+    image = Image.open(custom_image_path).convert('L')  # Convert to grayscale
+    image = image.resize((28, 28))  # Resize to 28x28
+    image = np.array(image)
+    predicted_label = predict_custom_image(model, device, custom_image_path)
+    ax.imshow(image, cmap='gray')
+    ax.set_title(f'Prediction: {predicted_label}')
+    ax.axis('off')
+plt.tight_layout()
+plt.show()

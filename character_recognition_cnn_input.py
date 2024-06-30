@@ -122,15 +122,18 @@ def predict_custom_image(model, device, image_path):
         return pred.item()
 
 # Train and test the model
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+print(f'Using device: {device}')
 model.to(device)
 
-for epoch in range(1, 2):
+for epoch in range(1, 10):
     train(model, device, train_loader, optimizer, epoch)
     test(model, device, test_loader)
 
 # Example usage of custom image prediction
-custom_image_path = './test.png'  # Replace with your image path
+custom_image_path = './test_3.png'  # Replace with your image path
 predicted_label = predict_custom_image(model, device, custom_image_path)
 print(f'Predicted Label for custom image: {predicted_label}')
 
