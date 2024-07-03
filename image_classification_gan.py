@@ -8,13 +8,13 @@ import numpy as np
 import os
 
 # Define hyperparameters
-image_size = 64
+image_size = 32
 batch_size = 64
-num_epochs = 10
+num_epochs = 1
 learning_rate = 0.0002
-latent_dim = 10
+latent_dim = 2
 num_classes = 10  # Adjust based on your dataset
-embedding_dim = 5
+embedding_dim = 1
 
 # Data preprocessing
 transform = transforms.Compose([
@@ -169,7 +169,7 @@ def generate_image(target_label, generator, latent_dim=100, num_classes=10):
     print(f"Generated image for label {target_label} saved as 'generated_{target_label}.png'")
 
 # Load the trained generator
-generator.load_state_dict(torch.load('generator.pth'))
+#generator.load_state_dict(torch.load('generator.pth'))
 
 # Example: Generate an image for a given label (e.g., label 0)
 target_label = 0  # Replace with the desired label

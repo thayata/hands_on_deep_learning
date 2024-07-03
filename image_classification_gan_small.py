@@ -8,13 +8,13 @@ import numpy as np
 import os
 
 # Define hyperparameters
-image_size = 64
+image_size = 32
 batch_size = 64
 num_epochs = 1
 learning_rate = 0.0002
-latent_dim = 10
+latent_dim = 2
 num_classes = 10  # Adjust based on your dataset
-embedding_dim = 5
+embedding_dim = 2
 
 # Data preprocessing
 transform = transforms.Compose([
@@ -39,14 +39,14 @@ class Generator(nn.Module):
         self.conv_blocks = nn.Sequential(
             nn.BatchNorm2d(128),
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(128, 128, 3, stride=1, padding=1),
-            nn.BatchNorm2d(128, 0.8),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Upsample(scale_factor=2),
             nn.Conv2d(128, 64, 3, stride=1, padding=1),
             nn.BatchNorm2d(64, 0.8),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, 3, 3, stride=1, padding=1),
+            nn.Upsample(scale_factor=2),
+            nn.Conv2d(64, 32, 3, stride=1, padding=1),
+            nn.BatchNorm2d(32, 0.8),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(32, 3, 3, stride=1, padding=1),
             nn.Tanh()
         )
 
@@ -154,8 +154,8 @@ for epoch in range(num_epochs):
     save_image(gen_imgs.data[:25], f"images/{epoch}.png", nrow=5, normalize=True)
 
 # Save the final models
-#torch.save(generator.state_dict(), 'generator.pth')
-#torch.save(discriminator.state_dict(), 'discriminator.pth')
+torch.save(generator.state_dict(), 'generator.pth')
+torch.save(discriminator.state_dict(), 'discriminator.pth')
 
 # Mapping of class names to labels
 class_to_idx = {
@@ -174,10 +174,15 @@ class_to_idx = {
 # Function to generate and save an image given a target name
 def generate_image(target_name, generator, class_to_idx, latent_dim=100):
     generator.eval()  # Set the generator to evaluation mode
-    z = torch.randn(1, latent_dim)
-    label = torch.tensor([class_to_idx[target_name]], dtype=torch.long)
-    gen_img = generator(z, label)
-    save_image(gen_img.data, f"generated_{target_name}.png", normalize=True)
+
+    z = torch.randn(image_size, latent_dim)
+    gen_labels = torch.randint(0, num_classes, (image_size,))
+    gen_imgs = generator(z, gen_labels)
+
+    #z = torch.randn(1, latent_dim)
+    #label = torch.tensor([class_to_idx[target_name]], dtype=torch.long)
+    #gen_img = generator(z, label)
+    save_image(gen_imgs.data, f"generated_{target_name}.png", normalize=True)
     print(f"Generated image for target '{target_name}' saved as 'generated_{target_name}.png'")
 
 # Load the trained generator

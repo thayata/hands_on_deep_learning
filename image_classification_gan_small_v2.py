@@ -8,10 +8,11 @@ import numpy as np
 import os
 
 # Define hyperparameters
-image_size = 64
-batch_size = 64
-num_epochs = 1
-learning_rate = 0.0002
+image_size = 32
+batch_size = 32
+num_epochs = 100
+learning_rate = 0.0005
+conv_dim = 16
 latent_dim = 10
 num_classes = 10  # Adjust based on your dataset
 embedding_dim = 5
@@ -34,26 +35,26 @@ class Generator(nn.Module):
         self.label_emb = nn.Embedding(num_classes, embedding_dim)
 
         self.init_size = image_size // 4
-        self.l1 = nn.Sequential(nn.Linear(latent_dim + embedding_dim, 128 * self.init_size ** 2))
+        self.l1 = nn.Sequential(nn.Linear(latent_dim + embedding_dim, conv_dim * self.init_size ** 2))
 
         self.conv_blocks = nn.Sequential(
-            nn.BatchNorm2d(128),
+            nn.BatchNorm2d(conv_dim),
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(128, 128, 3, stride=1, padding=1),
-            nn.BatchNorm2d(128, 0.8),
+            nn.Conv2d(conv_dim, conv_dim//2, 3, stride=1, padding=1),
+            nn.BatchNorm2d(conv_dim//2, 0.8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Upsample(scale_factor=2),
-            nn.Conv2d(128, 64, 3, stride=1, padding=1),
-            nn.BatchNorm2d(64, 0.8),
+            nn.Conv2d(conv_dim//2, conv_dim//4, 3, stride=1, padding=1),
+            nn.BatchNorm2d(conv_dim//4, 0.8),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, 3, 3, stride=1, padding=1),
+            nn.Conv2d(conv_dim//4, 3, 3, stride=1, padding=1),
             nn.Tanh()
         )
 
     def forward(self, noise, labels):
         gen_input = torch.cat((self.label_emb(labels), noise), -1)
         out = self.l1(gen_input)
-        out = out.view(out.shape[0], 128, self.init_size, self.init_size)
+        out = out.view(out.shape[0], conv_dim, self.init_size, self.init_size)
         img = self.conv_blocks(out)
         return img
 
@@ -64,15 +65,12 @@ class Discriminator(nn.Module):
         self.label_embedding = nn.Embedding(num_classes, embedding_dim)
 
         self.model = nn.Sequential(
-            nn.Linear(embedding_dim + int(np.prod((3, image_size, image_size))), 512),
+            nn.Linear(embedding_dim + int(np.prod((3, image_size, image_size))), 2*conv_dim),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(512, 512),
+            nn.Linear(2*conv_dim, conv_dim),
             nn.Dropout(0.4),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(512, 512),
-            nn.Dropout(0.4),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(512, 1),
+            nn.Linear(conv_dim, 1),
             nn.Sigmoid()
         )
 
@@ -174,6 +172,7 @@ class_to_idx = {
 # Function to generate and save an image given a target name
 def generate_image(target_name, generator, class_to_idx, latent_dim=100):
     generator.eval()  # Set the generator to evaluation mode
+
     z = torch.randn(1, latent_dim)
     label = torch.tensor([class_to_idx[target_name]], dtype=torch.long)
     gen_img = generator(z, label)
@@ -185,4 +184,4 @@ def generate_image(target_name, generator, class_to_idx, latent_dim=100):
 
 # Example: Generate an image for a given target name (e.g., 'cat')
 target_name = 'cat'  # Replace with the desired target name
-generate_image(target_name, generator, class_to_idx)
+generate_image(target_name, generator, class_to_idx, latent_dim=latent_dim)
