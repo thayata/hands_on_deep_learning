@@ -12,7 +12,7 @@ import numpy as np
 class Generator(nn.Module):
     def __init__(self, nz=512 * 2 * 2, nc=3):
         super(Generator, self).__init__()
-        self.vgg = models.vgg16(pretrained=True).features
+        self.vgg = models.vgg16(weights=models.VGG16_Weights.DEFAULT).features
         self.fc = nn.Sequential(
             nn.Linear(nz, 512 * 8 * 8),
             nn.BatchNorm1d(512 * 8 * 8),
@@ -43,7 +43,7 @@ class Generator(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, nc):
         super(Discriminator, self).__init__()
-        self.resnet = models.resnet18(pretrained=True)
+        self.resnet = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
         self.resnet.conv1 = nn.Conv2d(nc, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.resnet.fc = nn.Sequential(
             nn.Linear(self.resnet.fc.in_features, 1),
@@ -64,7 +64,7 @@ def weights_init(m):
 
 # Hyperparameters
 batch_size = 64
-image_size = 64
+image_size = 32
 nz = 512*2*2 # size of the latent z vector
 nc = 3  # number of channels in the training images (for RGB)
 ngf = 64  # size of feature maps in the generator
@@ -114,7 +114,7 @@ for epoch in range(num_epochs):
         errD_real.backward()
         D_x = output.mean().item()
 
-        noise = torch.randn(batch_size, 3, 3, 3, device=device)
+        noise = torch.randn(batch_size, nz, 1, 1, device=device)
         fake = netG(noise)
         label.fill_(0.)
         output = netD(fake.detach()).view(-1)

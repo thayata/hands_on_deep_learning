@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # Hyperparameters
 image_size = 32
 batch_size = 16
-learning_rate = 0.0001
+learning_rate = 0.0002
 num_epochs = 10
 latent_dim = 4
 
@@ -132,12 +132,12 @@ def generate_images(epoch, generator, latent_dim, num_images=10, image_size=(1, 
     
     fig, axes = plt.subplots(5, 2, figsize=(8, 8))
     for i, ax in enumerate(axes.flat):
-        ax.imshow(fake_images[i], cmap='gray')
+        ax.imshow(fake_images[i][0], cmap='gray')
         ax.axis('off')
     plt.tight_layout()
     plt.show()
-    #plt.savefig(f'{sample_dir}/generated_images_epoch_{epoch}.png')
-    #plt.close()
+    plt.savefig(f'./generated_images/generated_images_epoch_{epoch}.png')
+    plt.close()
 
 # Generate new images
 generate_images(epoch+1, generator, latent_dim)

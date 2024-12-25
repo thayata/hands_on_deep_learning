@@ -8,9 +8,9 @@ import numpy as np
 import os
 
 # Define hyperparameters
-image_size = 64
+image_size = 32
 batch_size = 64
-num_epochs = 1
+num_epochs = 10
 learning_rate = 0.0002
 latent_dim = 10
 num_classes = 10  # Adjust based on your dataset
@@ -185,4 +185,4 @@ def generate_image(target_name, generator, class_to_idx, latent_dim=100):
 
 # Example: Generate an image for a given target name (e.g., 'cat')
 target_name = 'cat'  # Replace with the desired target name
-generate_image(target_name, generator, class_to_idx)
+generate_image(target_name, generator, class_to_idx,latent_dim=latent_dim)

@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
+from torchsummary import summary
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -11,16 +12,17 @@ from PIL import Image
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 3, 1)
-        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.conv1 = nn.Conv2d( 1, 32, 3, 1, 1)
+        self.conv2 = nn.Conv2d(32, 64, 3, 1, 1)
         self.dropout1 = nn.Dropout2d(0.25)
         self.dropout2 = nn.Dropout2d(0.5)
-        self.fc1 = nn.Linear(9216, 128)
+        self.fc1 = nn.Linear(64*7*7, 128)
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
         x = self.conv1(x)
         x = nn.functional.relu(x)
+        x = nn.functional.max_pool2d(x, 2)
         x = self.conv2(x)
         x = nn.functional.relu(x)
         x = nn.functional.max_pool2d(x, 2)
@@ -48,8 +50,13 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1000, shuffle
 
 # Initialize the model, loss function, and optimizer
 model = Net()
+summary(model,(1,28,28))
+
+#load the model
+#model.load_state_dict(torch.load('mnist_cnn.pth'))
+
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0005)
 
 # Training loop
 def train(model, device, train_loader, optimizer, epoch):
@@ -128,9 +135,12 @@ device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
 print(f'Using device: {device}')
 model.to(device)
 
-for epoch in range(1, 20):
+for epoch in range(1, 30):
     train(model, device, train_loader, optimizer, epoch)
     test(model, device, test_loader)
+
+# Save the model
+torch.save(model.state_dict(), 'mnist_cnn.pth')
 
 # Plotting some of the test images with their predictions
 fig, axes = plt.subplots(3, 3, figsize=(9, 9))
