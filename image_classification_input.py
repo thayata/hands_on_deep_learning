@@ -37,16 +37,16 @@ train_loader, test_loader, train_dataset, test_dataset = get_dataset(dataset_nam
 class SimpleCNN(nn.Module):
     def __init__(self):
         super(SimpleCNN, self).__init__()
-        self.conv1 = nn.Conv2d(3 if dataset_name == 'CIFAR10' else 1, 16, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(3 if dataset_name == 'CIFAR10' else 1, 32, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
-        self.fc1 = nn.Linear(32 * 8 * 8, 128)
+        self.fc1 = nn.Linear(64 * 8 * 8, 128)
         self.fc2 = nn.Linear(128, 10)
     
     def forward(self, x):
         x = self.pool(torch.relu(self.conv1(x)))
         x = self.pool(torch.relu(self.conv2(x)))
-        x = x.view(-1, 32 * 8 * 8)
+        x = x.view(-1, 64 * 8 * 8)
         x = torch.relu(self.fc1(x))
         x = self.fc2(x)
         return x
@@ -137,10 +137,10 @@ def predict_image(image_path, model, transform, dataset_name):
     return predicted.item()
 
 # Replace 'path/to/your/image.jpg' with the actual path to your image file
-image_path = './test_dog.jpeg'
+image_path = './test/test_dog.jpeg'
 predicted_class = predict_image(image_path, model, transform, dataset_name)
 print(f'The model predicts the image is: {test_dataset.classes[predicted_class]}')
 
-image_path = './test_dog2.png'
+image_path = './test/test_dog2.png'
 predicted_class = predict_image(image_path, model, transform, dataset_name)
 print(f'The model predicts the image is: {test_dataset.classes[predicted_class]}')
