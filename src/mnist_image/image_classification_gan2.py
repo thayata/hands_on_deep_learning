@@ -10,7 +10,7 @@ import os
 # Define hyperparameters
 image_size = 32
 batch_size = 64
-num_epochs = 10
+num_epochs = 200
 learning_rate = 0.0002
 latent_dim = 10
 num_classes = 10  # Adjust based on your dataset
@@ -85,6 +85,10 @@ class Discriminator(nn.Module):
 generator = Generator()
 discriminator = Discriminator()
 
+if os.path.exists('generator_image.pth')==1:
+    generator.load_state_dict(torch.load('generator_image.pth'))
+    discriminator.load_state_dict(torch.load('discriminator_image.pth'))
+
 # Loss function
 adversarial_loss = torch.nn.BCELoss()
 
@@ -154,8 +158,8 @@ for epoch in range(num_epochs):
     save_image(gen_imgs.data[:25], f"images/{epoch}.png", nrow=5, normalize=True)
 
 # Save the final models
-#torch.save(generator.state_dict(), 'generator.pth')
-#torch.save(discriminator.state_dict(), 'discriminator.pth')
+torch.save(generator.state_dict(), 'generator_image.pth')
+torch.save(discriminator.state_dict(), 'discriminator_image.pth')
 
 # Mapping of class names to labels
 class_to_idx = {
