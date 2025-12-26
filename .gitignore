@@ -1,3 +1,4 @@
 /data/*
 /images/*
 *.png
+.DS_Store
